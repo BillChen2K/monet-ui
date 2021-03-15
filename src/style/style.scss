@@ -3,10 +3,15 @@
 
 #app {
   font-family: "Overpass", Roboto, Helvetica, "PingFang SC", "Microsoft YaHei";
+  background-color: #191919;
 }
 
 .mn-button {
   border-radius: 0;
   border-width: 2.5px;
   font-weight: bold;
+}
+
+.mn-dialog {
+  border-radius: 0;
 }

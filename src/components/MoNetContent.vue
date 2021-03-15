@@ -6,7 +6,11 @@
 
 <script>
 export default {
-name: "MoNetContent",
+  name: "MoNetContent",
+
+  data: () => ({
+
+  })
 }
 </script>
 
