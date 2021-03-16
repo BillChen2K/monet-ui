@@ -1,8 +1,8 @@
 <template>
 <v-container>
-  <v-row align-content="right">
+  <v-row align-content="right" style="transition: all 1s">
     <v-spacer></v-spacer>
-    <v-col xs="12" md="4">
+    <v-col xs="12" md="4" align="right">
       <v-btn outlined class="mn-button mx-2" onclick="window.open('https://github.com/billchen2k/monet-ui', '_blank')">
         GITHUB
       </v-btn>

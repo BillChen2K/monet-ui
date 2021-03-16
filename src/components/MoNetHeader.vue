@@ -27,6 +27,7 @@
 
     mounted() {
       this.showTitle = true;
+
     }
   }
 </script>
