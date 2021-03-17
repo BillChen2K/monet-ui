@@ -1,6 +1,8 @@
 <template>
 <v-container>
-  <v-fade-transition mode="out-in">
+  <v-stepper>
+
+  </v-stepper>
     <div class="hint-text mt-12" align="center" v-if="showHint">
       <h2>使用指引</h2>
       <p>选择一张希望进行风格迁移的原图片</p>
@@ -14,16 +16,19 @@
     </div>
     <div v-else class="mt-12">
       <v-row>
-        <v-col xs="12" sm="12" md="5" align="center">
-          <v-img class="mn-img" :lazy-src="realImg"></v-img>
-          <v-btn large class="mn-button" outlined style="position: relative; top: -50%">BROWSE</v-btn>
+        <v-col xs="12" sm="12" md="5" align="center" style="position: relative">
+          <v-img class="mn-img" :src="rawImg"></v-img>
+          <input style="display: none" ref="fileInput" type="file" @change="fileSelected" formenctype="multipart/form-data">
+
+          <v-btn @click="$refs.fileInput.click()" large class="mn-button" outlined
+                 style="position: relative; top: -10rem"
+                 v-if="!rawImg">BROWSE</v-btn>
         </v-col>
 
         <v-col class="container-feature" md="2" align="center">
           <div style="height: 18rem;">
             <div style="height: 33%;">
-
-              <v-btn height="5rem" width="5rem" class="mn-button mn-button-feature" outlined>
+              <v-btn v-if="fakeImg.length" height="5rem" width="5rem" class="mn-button mn-button-feature" outlined>
                 <div>
                   <v-icon>mdi-download</v-icon>
                 </div>
@@ -38,7 +43,7 @@
             </div>
             <div style="height: 33%;">
 
-              <v-btn style="margin-top:1rem" height="5rem" width="5rem" class="mn-button mn-button-feature" outlined>
+              <v-btn v-if="rawImg" style="margin-top:1rem" height="5rem" width="5rem" class="mn-button mn-button-feature" outlined @click="reselect">
                 <div>
                   <v-icon>mdi-refresh</v-icon>
                 </div>
@@ -54,9 +59,25 @@
 
 
         <v-col xs="12" sm="12" md="5" align="center">
-          <v-img class="mn-img img-processing" :lazy-src="fakeImg"></v-img>
+          <v-img :class="stage == 1 ? 'img-processing': ''" class="mn-img" v-clas :src="fakeImg">
+            <template v-slot:placeholder v-if="stage==2">
+              <div style="user-select: none; font-weight: bold; font-size: 1.2rem">
+                DOWNLOADING...
+              </div>
+              <v-row
+                  class="fill-height ma-0"
+                  align="center"
+                  justify="center"
+              >
+                <v-progress-circular
+                    indeterminate
+                    color="grey lighten-5"
+                ></v-progress-circular>
+              </v-row>
+            </template>
+          </v-img>
 
-          <div style="position: relative; top: -50%; user-select: none; font-weight: bold; font-size: 1.2rem">
+          <div v-if="stage == 1" style="position: relative; top: -50%; user-select: none; font-weight: bold; font-size: 1.2rem">
             PROCESSING...
           </div>
 
@@ -64,30 +85,131 @@
       </v-row>
 
       <!-- Selector -->
-      <v-row>
-
-      </v-row>
+      <v-radio-group v-model="submitForm.style" v-if="rawImg">
+        <v-row class="mt-4 mx-auto" style="display: flex; justify-content: space-between; width: 80%; transition: 1s"  >
+            <div v-for="one in styles" :key="one.key"  align="center">
+              <v-fade-transition>
+                <div :class="one.key == submitForm.style ? 'text-gradient-base' : ''"
+                     :style="one.key == submitForm.style ?
+              'font-size: 1.3rem; font-weight: bold;' : 'font-size: 1.3rem'">{{one.name_en}}</div>
+              </v-fade-transition>
+              <div>{{one.name_zh}}</div>
+              <v-radio :disabled="stage==1" color="white" :value="one.key" class="mx-5 mt-1" @click="transform"></v-radio>
+            </div>
+        </v-row>
+      </v-radio-group>
     </div>
-  </v-fade-transition>
 
 </v-container>
 </template>
 
 <script>
+
+import axios from 'axios'
+import config from "@/plugins/config";
+
 export default {
+
   name: "MoNetContent",
 
   data: () => ({
     showHint: false,
+    rawImg: "",
     realImg: "",
     fakeImg: "",
     stage: 0, // 0: Choose file; 1: Processing; 2: Finished
     submitForm: {
       img: "",
       style: "",
-      size: 512
+      size: 256
+    },
+    selectedFile: null,
+
+    styles: [
+      {
+        name_en: "Cézanne",
+        name_zh: "塞尚",
+        key: "cezanne"
+      },
+      {
+        name_en: "Monet",
+        name_zh: "莫奈",
+        key: "monet"
+      },
+      {
+        name_en: "Ukiyoe",
+        name_zh: "浮世绘",
+        key: "ukiyoe"
+      },
+      {
+        name_en: "Vangogh",
+        name_zh: "梵高",
+        key: "vangogh"
+      },
+      {
+        name_en: "Summer",
+        name_zh: "夏天",
+        key: "summer"
+      },
+      {
+        name_en: "Winter",
+        name_zh: "冬天",
+        key: "winter"
+      },
+    ]
+  }),
+
+  methods: {
+    transform() {
+      this.fakeImg = ""
+      this.stage = 1;
+      let formData = new FormData();
+      formData.append("img", this.selectedFile);
+      formData.append("style", this.submitForm.style);
+      formData.append("size", this.submitForm.size);
+      axios.post(config.API + "/transform", formData, {
+        headers: {
+          "Content-Type": 'multipart/form-data'
+        }
+      })
+      .then(res => {
+        console.log(res.data);
+        if (!res.data.success) {
+          throw new Error(res.data.msg)
+        }
+        this.fakeImg = res.data.data.fakepic
+        this.stage = 2
+      })
+      .catch(err => {
+        console.error(err);
+        this.stage = 0
+      })
+
+
+    },
+
+    reselect() {
+      this.rawImg = null
+      this.fakeImg = null
+      this.stage = 0
+    },
+
+    fileSelected(e) {
+      e.preventDefault();
+      console.log(e);
+      this.selectedFile = e.target.files[0];
+      this.rawImg = URL.createObjectURL(this.selectedFile);
+      console.log(this.rawImg);
     }
-  })
+  },
+
+  mounted() {
+    console.log("Test")
+    axios.get(config.API + "/transform")
+    .then(result => {
+      console.log(result)
+    })
+  }
 }
 </script>
 
@@ -101,11 +223,14 @@ export default {
 .mn-img {
   border: white 2px solid;
   width: 95%;
+  background: #2d2d2d;
   height: 18rem;
 }
 
-.mn-button-feature {
-
+.text-gradient-base {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: radial-gradient(ellipse at top, #fad9ff, #6083fa);
 }
 
 .container-feature {
@@ -113,7 +238,7 @@ export default {
 }
 
 .img-processing {
-  background: radial-gradient(ellipse at top, #3d3d3d, #781858);;
+  background: radial-gradient(ellipse at top, #3d3d3d, #781858);
 }
 
 </style>

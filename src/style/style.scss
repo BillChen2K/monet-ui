@@ -6,6 +6,10 @@
   background-color: #191919;
 }
 
+::selection {
+  background: #a54bff;
+}
+
 .mn-button {
   border-radius: 0;
   border-width: 2.5px;
