@@ -18,7 +18,7 @@
       <v-row>
         <v-col xs="12" lg="5" align="center" style="position: relative">
           <v-img class="mn-img" :src="rawImg"></v-img>
-          <input style="display: none" ref="fileInput" type="file" @change="fileSelected" formenctype="multipart/form-data">
+          <input style="display: none" accept=".png,.jpg,.jpeg" ref="fileInput" type="file" @change="fileSelected" formenctype="multipart/form-data">
 
           <v-btn @click="$refs.fileInput.click()" large class="mn-button" outlined
                  style="position: relative; top: -10rem"
@@ -248,7 +248,7 @@ export default {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'output' + extension); //or any other extension
+        link.setAttribute('download', 'output.' + extension); //or any other extension
         document.body.appendChild(link);
         link.click();
       });
