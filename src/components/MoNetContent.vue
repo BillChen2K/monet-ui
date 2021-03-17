@@ -16,7 +16,7 @@
     </div>
     <div v-else class="mt-12">
       <v-row>
-        <v-col xs="12" sm="12" md="5" align="center" style="position: relative">
+        <v-col xs="12" lg="5" align="center" style="position: relative">
           <v-img class="mn-img" :src="rawImg"></v-img>
           <input style="display: none" ref="fileInput" type="file" @change="fileSelected" formenctype="multipart/form-data">
 
@@ -25,10 +25,11 @@
                  v-if="!rawImg">BROWSE</v-btn>
         </v-col>
 
-        <v-col class="container-feature" md="2" align="center">
-          <div style="height: 18rem;">
+        <v-col class="container-feature" md="4" lg="2" align="center">
+          <div style="height: 18rem; min-width: 8rem;">
             <div style="height: 33%;">
-              <v-btn v-if="fakeImg.length" height="5rem" width="5rem" class="mn-button mn-button-feature" outlined>
+              <v-btn v-if="fakeImg.length" height="5rem" width="5rem" class="mn-button mn-button-feature" outlined
+              @click="window.open(fakeImg)">
                 <div>
                   <v-icon>mdi-download</v-icon>
                 </div>
@@ -58,8 +59,8 @@
         </v-col>
 
 
-        <v-col xs="12" sm="12" md="5" align="center">
-          <v-img :class="stage == 1 ? 'img-processing': ''" class="mn-img" v-clas :src="fakeImg">
+        <v-col xs="12"  lg="5" align="center">
+          <v-img :class="stage == 1 ? 'img-processing': ''" class="mn-img" :src="fakeImg">
             <template v-slot:placeholder v-if="stage==2">
               <div style="user-select: none; font-weight: bold; font-size: 1.2rem">
                 DOWNLOADING...
@@ -77,9 +78,15 @@
             </template>
           </v-img>
 
-          <div v-if="stage == 1" style="position: relative; top: -50%; user-select: none; font-weight: bold; font-size: 1.2rem">
-            PROCESSING...
+          <div style="height: 1.5rem">
+            <v-fade-transition>
+              <div v-if="stage == 1 && showProcessing" style="position: relative; top: -10rem; user-select: none; font-weight: bold; font-size: 1.2rem">
+                PROCESSING...
+              </div>
+            </v-fade-transition>
           </div>
+
+
 
         </v-col>
       </v-row>
@@ -100,6 +107,22 @@
       </v-radio-group>
     </div>
 
+  <v-snackbar
+      v-model="snackbar"
+  >
+    {{ snackbar_text }}
+    <template v-slot:action="{ attrs }">
+      <v-btn
+          color="pink"
+          text
+          v-bind="attrs"
+          @click="snackbar = false"
+      >
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
+
 </v-container>
 </template>
 
@@ -116,8 +139,11 @@ export default {
     showHint: false,
     rawImg: "",
     realImg: "",
+    snackbar: false,
+    snackbar_text: "",
     fakeImg: "",
     stage: 0, // 0: Choose file; 1: Processing; 2: Finished
+    showProcessing: true,
     submitForm: {
       img: "",
       style: "",
@@ -182,15 +208,18 @@ export default {
       })
       .catch(err => {
         console.error(err);
-        this.stage = 0
+        this.submitForm.style = "";
+        this.snackbar = true;
+        this.snackbar_text = "错误：" + err.message;
+        this.stage = 0;
       })
 
 
     },
 
     reselect() {
-      this.rawImg = null
-      this.fakeImg = null
+      this.rawImg = ""
+      this.fakeImg = ""
       this.stage = 0
     },
 
@@ -200,15 +229,18 @@ export default {
       this.selectedFile = e.target.files[0];
       this.rawImg = URL.createObjectURL(this.selectedFile);
       console.log(this.rawImg);
+    },
+
+    blink() {
+      this.showProcessing = !this.showProcessing;
     }
   },
 
   mounted() {
-    console.log("Test")
-    axios.get(config.API + "/transform")
-    .then(result => {
-      console.log(result)
-    })
+    console.log("Loaded.")
+    setInterval(() => {
+      this.showProcessing = !this.showProcessing;
+    }, 500);
   }
 }
 </script>
@@ -223,6 +255,7 @@ export default {
 .mn-img {
   border: white 2px solid;
   width: 95%;
+  min-width: 24rem;
   background: #2d2d2d;
   height: 18rem;
 }

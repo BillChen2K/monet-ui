@@ -1,8 +1,7 @@
 <template>
 <v-container>
   <v-row align-content="right" style="transition: all 1s">
-    <v-spacer></v-spacer>
-    <v-col xs="12" md="4" align="right">
+    <v-col xs="12" align="right">
       <v-btn outlined class="mn-button mx-2" onclick="window.open('https://github.com/billchen2k/monet-ui', '_blank')">
         GITHUB
       </v-btn>
@@ -23,6 +22,9 @@
             MoNet
           </v-card-title>
           <v-card-text class="py-4">
+            <p>MoNet 利用 CycleGAN 网络，将图片转换成不同的风格。</p>
+            <p>East China Normal University, 2021</p>
+
           </v-card-text>
 
           <v-divider></v-divider>
